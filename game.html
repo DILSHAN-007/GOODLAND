@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Goodland - Landscape Mode</title>
+ 
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #88d498, #f4f4f9);
+      overflow: hidden;
+      position: fixed;
+      user-select: none;
+    }
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    canvas {
+      display: block;
+      border: 2px solid #ffffff;
+      background: linear-gradient(to bottom, #4e9c81, #345f4a);
+      transition: background 3s;
+    }
+
+    #score-panel {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 15px;
+  padding: 7px 11px;
+  width: 120px;
+  height: 50px;
+  color: #ffffff;
+  font-size: 12px;
+  
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: block;
+  
+  gap: 0px;
+}
+
+#score-panel span {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+  border: none; /* Border hata di hai */
+}
+
+    #sliderContainer {
+      position: absolute;
+      bottom: -20px;
+      right: 10%;
+      transform: translateX(-50%);
+      width: 50px;
+      height:150px;
+    }
+
+    #customSlider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 150px;
+      height: 25px;
+      border-radius: 10px;
+      background: #4E9C81;
+      outline: none;
+      opacity: 0.9;
+      transform: rotate(90deg);
+      transition: box-shadow 0.5s ease-in-out, opacity 0.5s ease-in-out ;
+      opacity: 0.4;
+    }
+    #customSlider.glowing {
+      box-shadow: 0 0 30px rgba(78, 156, 129, 0.8), 0 0 40px rgba(78, 156, 129, 0.6);
+      opacity: 1;
+    }
+
+    #customSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-image: radial-gradient(#00452C,#00452C);
+      border: 2px solid #E0E0E0;
+transition: background-image 0.5s ease-in-out;
+    }
+    #customSlider.glowing::-webkit-slider-thumb {
+      background-image: radial-gradient(#77FFD0,#5BC8A2,#408C71,#244F40,#10241D);
+      border-color: white;
+    }
+
+    #gameover {
+      width: 300px;
+      height: 200px;
+      position:fixed;
+      top:30px;
+      border:3px solid black;
+      border-radius: 10px;
+      background-color: #DBFFDC;
+      display:none;
+    }
+   .retry {
+     user-select: none;
+  position: absolute;
+  right: calc(40% - 1px);
+  border-radius: 5px;
+  border: 2px solid black;
+  background-color: #4caf50; /* Initial green background */
+  color: black; /* White text */
+  font-weight: bold;
+  font-size: 18px;
+  padding: 5px 10px;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  outline: none;
+  transition: background-color 0.5s, transform 0.1s; /* Smooth background transition */
+  background-image: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #00ff00, #0066ff, #8a2be2); /* Full spectrum rainbow gradient */
+  background-size: 300% 300%;
+  animation: color-change 3s ease infinite; /* Animation for color change */
+}
+.retry:hover {
+  transform: scale(0.8);
+}
+
+@keyframes color-change {
+  0% {
+    background-position: 10% 50%;
+  }
+  50% {
+    background-position: 90% 50%;
+  }
+  100% {
+    background-position: 10% 50%;
+  }
+}
+
+.retry:hover {
+  background-color: #45a049; /* Slightly darker green on hover */
+  border-color: #45a049; /* Darker green border on hover */
+}
+
+.retry:active {
+  transform: scale(0.95); /* Slight shrink when clicked */
+  background-color: #388e3c; /* Even darker green on click */
+  border-color: #388e3c; /* Darker border on click */
+}
+#sound {
+  width:50px;
+  height:50px;
+  position: fixed;
+  bottom:25%;
+  right:15%;
+  background-image: url("sound.png");
+  background-size: 50px 50px;
+}
+  </style>
+
+<body>
+
+  <div id="game-container">
+ 
+
+
+    <canvas id="gameCanvas"></canvas>
+    <div id="score-panel" style="position: fixed; top:10px; right:30px;">
+      <span>Score: <span id="score">0</span></span>
+      <span>High Score: <span id="highscore">0</span></span>
+    </div>
+    <div id="sliderContainer">
+      <input type="range" id="customSlider" min="0" max="100" value="50">
+    </div>
+    <div id="sound" onclick="sound()"></div>
+    <div id="gameover">
+      <br>
+      <span style="position: absolute; right:calc(30% - 20px); font-size: 30px; font-weight: bold; font-family: serif;">Game Over</span>
+      <br><br><br>
+      <span id="GOscore" style="position: absolute; left:calc(50% - 10px); font-size:25px; font-weight: bold; font-family: serif;">0</span>
+      <br><br><br>
+      <button onclick="retry()" class="retry">Retry</button>
+    </div>
+  </div>
+    <audio id="collision-sound" src="collide.mp3"></audio>
+      <audio id="gameover-sound" src="gameover.mp3"></audio>
+       <audio id="bgMusic-sound" src="bgMusic.mp3"></audio>
+  <script>
+    // Canvas Setup
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const collisionSound = document.getElementById('collision-sound');
+    const gameoverSound = document.getElementById('gameover-sound');
+    const backgroundSound= document.getElementById('bgMusic-sound');
+    
+    // Variables
+    let score = 0;
+    let highScore = localStorage.getItem("highscore") || 0;
+    let players = [{ x: 100, y: canvas.height / 2, size: 20, speed: 2, targetY: canvas.height / 2 }];
+    let collectibles = [];
+    let obstacles = [];
+    let dynamicObstacles = [];
+    let gameOver = false;
+    let dayNightCycle = 0; // Counter to simulate day-night cycle
+    let isDay = true;
+
+    // Day-Night Cycle Color Variables
+    let colorState = {
+      rTop: 78, gTop: 156, bTop: 129, // Day top color (initial)
+      rBottom: 52, gBottom: 95, bBottom: 74, // Day bottom color (initial)
+    };
+
+    // Difficulty Variables
+    let obstacleSpeed = 4;
+    let dynamicObstacleSpeed = 3;
+    let spawnRate = 2000;
+    
+    const slider = document.getElementById('customSlider');
+    
+    // Add glowing effect when the user starts dragging
+    slider.addEventListener('mousedown', () => {
+      slider.classList.add('glowing');
+    });
+    
+    // Keep glowing effect while sliding
+    slider.addEventListener('input', () => {
+      if (!slider.classList.contains('glowing')) {
+        slider.classList.add('glowing');
+      }
+    });
+    
+    // Remove glowing effect when the user stops dragging
+    slider.addEventListener('mouseup', () => {
+      slider.classList.remove('glowing');
+    });
+    
+    // Remove glowing effect if the mouse leaves the slider
+    slider.addEventListener('mouseleave', () => {
+      slider.classList.remove('glowing');
+    });
+    
+    // For touch events (for mobile devices)
+    slider.addEventListener('touchstart', () => {
+      slider.classList.add('glowing');
+    });
+    
+    slider.addEventListener('touchend', () => {
+      slider.classList.remove('glowing');
+    });
+    
+    // Load Images
+    const playerImage = new Image();
+    playerImage.src = "player.png"; // Replace with your player image path
+    
+    const obstacleImage = new Image();
+    obstacleImage.src = "obstacle.png"; // Replace with your obstacle image path
+    
+    // Define the paths for the power-up images
+    const powerUpImages = {
+      grow: new Image(),
+      shrink: new Image(),
+      clone: new Image(),
+      speed: new Image(),
+    };
+    
+    // Preload the images
+    powerUpImages.grow.src = "power.png"; // Replace with your actual image path
+    powerUpImages.shrink.src = "power.png"; // Replace with your actual image path
+    powerUpImages.clone.src = "power.png"; // Replace with your actual image path
+    powerUpImages.speed.src = "power.png"; // Replace with your actual image path
+    
+
+    // Display High Score
+    document.getElementById("highscore").textContent = highScore;
+
+    // Function to Update the Background Color Gradually
+    function updateDayNightCycle() {
+      if (dayNightCycle % 600 === 0) { // Change every 600 frames (approximately 10 seconds)
+        // Toggle between day and night
+        isDay = !isDay;
+      }
+
+      // Adjust colors gradually depending on day or night
+      if (isDay) {
+        // Move towards daytime colors (sunrise to day)
+        colorState.rTop = Math.min(colorState.rTop + 1, 78);
+        colorState.gTop = Math.min(colorState.gTop + 1, 156);
+        colorState.bTop = Math.min(colorState.bTop + 1, 129);
+
+        colorState.rBottom = Math.min(colorState.rBottom + 1, 52);
+        colorState.gBottom = Math.min(colorState.gBottom + 1, 95);
+        colorState.bBottom = Math.min(colorState.bBottom + 1, 74);
+      } else {
+        // Move towards nighttime colors (sunset to night)
+        colorState.rTop = Math.max(colorState.rTop - 1, 44);
+        colorState.gTop = Math.max(colorState.gTop - 1, 62);
+        colorState.bTop = Math.max(colorState.bTop - 1, 80);
+
+        colorState.rBottom = Math.max(colorState.rBottom - 1, 28);
+        colorState.gBottom = Math.max(colorState.gBottom - 1, 40);
+        colorState.bBottom = Math.max(colorState.bBottom - 1, 51);
+      }
+
+      // Update canvas background color with gradual transition
+      canvas.style.background = `linear-gradient(to bottom, rgb(${colorState.rTop}, ${colorState.gTop}, ${colorState.bTop}), rgb(${colorState.rBottom}, ${colorState.gBottom}, ${colorState.bBottom}))`;
+
+      dayNightCycle++;
+    }
+
+    // Function to Spawn Collectibles Strategically Before Obstacles
+    function spawnStrategicCollectibles() {
+      const obstacleY = Math.random() * canvas.height;
+      const collectibleType = Math.random();
+
+      // Decide which type of collectible to spawn
+      let effect = "";
+      if (collectibleType < 0.3) {
+        effect = "grow";
+      } else if (collectibleType < 0.6) {
+        effect = "shrink";
+      } else if (collectibleType < 0.85) {
+        effect = "clone";
+      } else {
+        effect = "speed"; // Speed-up collectible
+      }
+
+      // Spawn collectible slightly before obstacle
+      collectibles.push({
+        x: canvas.width + Math.random() * 100,
+        y: obstacleY - 50,
+        size: 15,
+        effect: effect
+      });
+
+      // Spawn obstacle right after collectible
+      obstacles.push({
+        x: canvas.width + Math.random() * 200,
+        y: obstacleY,
+        size: 40,
+      });
+    }
+
+    // Function to Spawn Dynamic Obstacles
+    function spawnDynamicObstacles() {
+      dynamicObstacles.push({
+        x: canvas.width + Math.random() * 400,
+        y: Math.random() * canvas.height,
+        size: 20,
+        speedY: (Math.random() * dynamicObstacleSpeed) + 2,
+        direction: Math.random() > 0.5 ? 1 : -1
+      });
+    }
+
+    // Custom Slider Control with Smooth Player Movement
+    const customSlider = document.getElementById("customSlider");
+    customSlider.addEventListener("input", (e) => {
+      const sliderValue = e.target.value;
+      // Set targetY for all players
+      players.forEach(player => {
+        player.targetY = (sliderValue / 100) * (canvas.height - player.size);
+      });
+    });
+
+    // Game Loop
+    function gameLoop() {
+      if (gameOver) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Update the day-night cycle background color
+      updateDayNightCycle();
+
+      // Smoothly move the players towards the targetY position
+      players.forEach(player => {
+        player.y += (player.targetY - player.y) * 0.1;
+
+        // Draw Player and Clones
+        ctx.drawImage(playerImage, player.x - player.size, player.y - player.size, player.size * 2, player.size * 2);
+      });
+
+// Move and Draw Collectibles
+      collectibles.forEach((col, index) => {
+        col.x -= obstacleSpeed - 1;
+        if (col.x + col.size < 0) collectibles.splice(index, 1);
+      
+        players.forEach((player) => {
+          // Collision Detection for Collectibles
+          const dist = Math.hypot(player.x - col.x, player.y - col.y);
+          if (dist < player.size + col.size) {
+            
+            playCollisionSound();
+      
+            if (col.effect === "grow") {
+              player.size += 10; // Increase size for passing larger obstacles
+              setTimeout(() => player.size -= 10, 5000); // Revert back after 5 seconds
+            } else if (col.effect === "shrink" && player.size > 15) {
+              player.size -= 10; // Shrink for fitting into tighter spaces
+              setTimeout(() => player.size += 10, 5000); // Revert back after 5 seconds
+            } else if (col.effect === "clone") {
+              spawnPlayerClones(player);
+            } else if (col.effect === "speed") {
+              player.speed = 6; // Speed up
+              setTimeout(() => player.speed = 2, 5000); // Revert speed after 5 seconds
+            }
+            score += 10;
+            collectibles.splice(index, 1);
+            document.getElementById("score").textContent = score;
+          }
+        });
+      
+        // Draw the power-up image based on its effect
+        const img = powerUpImages[col.effect]; // Get the correct image for the power-up effect
+      
+        // Draw the image directly on the canvas
+        ctx.drawImage(img, col.x - col.size, col.y - col.size, col.size * 2, col.size * 2);
+      });
+
+      // Move and Draw Static Obstacles
+      obstacles.forEach((obs, index) => {
+        obs.x -= obstacleSpeed;
+        if (obs.x + obs.size < 0) obstacles.splice(index, 1);
+
+        players.forEach((player, playerIndex) => {
+          // Collision Detection for Obstacles
+          const dist = Math.hypot(player.x - obs.x, player.y - obs.y);
+          if (dist < player.size + obs.size) {
+            
+            playGameoverSound();
+          
+            
+            if (playerIndex === 0) {
+              // If the original player collides, game over
+              gameOver = true;
+          
+              document.getElementById("sliderContainer").style.display = "none";
+              if (score > highScore) {
+                localStorage.setItem("highscore", score);
+                document.getElementById("highscore").textContent = score;
+              }
+              document.getElementById("gameover").style.display = "block";
+              document.getElementById("GOscore").textContent = score;
+              /*alert("Game Over! Your Score: " + score);
+              location.reload();*/
+            } else {
+              // Remove the clone if it collides
+              players.splice(playerIndex, 1);
+            }
+          }
+        });
+
+        ctx.drawImage(obstacleImage, obs.x - obs.size, obs.y - obs.size, obs.size * 2, obs.size * 2);
+      });
+
+      // Move and Draw Dynamic Obstacles
+      dynamicObstacles.forEach((dynObs, index) => {
+        dynObs.x -= obstacleSpeed - 1;
+        dynObs.y += dynObs.speedY * dynObs.direction;
+
+        // Reverse direction if hitting top or bottom bounds
+        if (dynObs.y < 0 || dynObs.y > canvas.height) {
+          dynObs.direction *= -1;
+        }
+
+        if (dynObs.x + dynObs.size < 0) dynamicObstacles.splice(index, 1);
+         
+        players.forEach((player, playerIndex) => {
+          // Collision Detection for Dynamic Obstacles
+          playGameoverSound();
+          const dist = Math.hypot(player.x - dynObs.x, player.y - dynObs.y);
+          if (dist < player.size + dynObs.size) {
+           
+            
+            
+            if (playerIndex === 0) {
+              // If the original player collides, game over
+              gameOver = true;
+             backgroundMusicSound();
+              if (score > highScore) {
+                localStorage.setItem("highscore", score);
+                document.getElementById("highscore").textContent = score;
+              }
+              document.getElementById("gameover").style.display = "block";
+              document.getElementById("GOscore").textContent = score;
+           /*   alert("Game Over! Your Score: " + score);
+              location.reload();*/
+            } else {
+              // Remove the clone if it collides
+              
+              players.splice(playerIndex, 1);
+            }
+          }
+        });
+
+        ctx.drawImage(obstacleImage, dynObs.x - dynObs.size, dynObs.y - dynObs.size, dynObs.size * 2, dynObs.size * 2);
+      });
+
+      requestAnimationFrame(gameLoop);
+    }
+
+// Function to Spawn Player Clones
+    function spawnPlayerClones(player) {
+      const cloneCount = Math.floor(Math.random() * 3) + 2; // Between 2 and 4 clones
+      for (let i = 0; i < cloneCount; i++) {
+        const randomOffsetX = Math.random() * 80 - 80; // Random offset around player
+        const randomOffsetY = Math.random() * 60 - 30;
+    
+        // Create clone
+        const clone = {
+          x: player.x + randomOffsetX,
+          y: player.y + randomOffsetY,
+          size: player.size,
+          speed: player.speed,
+          targetY: player.targetY
+        };
+    
+        // Add clone to players array
+        players.push(clone);
+    
+        // Remove clone after 10 seconds
+        setTimeout(() => {
+          const index = players.indexOf(clone);
+          if (index > -1) {
+            players.splice(index, 1); // Remove the clone from the array
+          }
+        }, 10000); // 10 seconds
+      }
+    }
+    
+        // Play collision sound
+    function playCollisionSound() {
+        collisionSound.currentTime = 0;
+        collisionSound.play();
+    }
+
+    // Play game over sound
+    function playGameoverSound() {
+        gameoverSound.currentTime = 0;
+        gameoverSound.play();
+        
+    }
+   
+        
+    function retry() {
+      document.getElementById("gameover").style.display = "none";
+      document.getElementById("sliderContainer").style.display = "block";
+      location.reload();
+    }
+    function sound(){
+      document.getElementById("sound").style.display = "none";
+      backgroundSound.play();
+      backgroundSound.loop();
+    }
+    function backgroundMusicSound() {
+      backgroundSound.pause();
+    }
+
+    // Spawning Strategic Collectibles and Dynamic Obstacles
+    setInterval(spawnStrategicCollectibles, spawnRate);
+    setInterval(spawnDynamicObstacles, spawnRate + 1000);
+
+    // Start Game
+    gameLoop();
+  </script>
+</body>
+</html>

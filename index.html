@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Goodland - Start</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: calc(100% -1px);
+      height: 100vh;
+      background: linear-gradient(120deg, #0f2027, #203a43, #2c5364);
+      overflow: hidden;
+      user-select: none;
+    }
+
+
+    /* Game Title */
+    h1 {
+      position: absolute;
+      top: 10%;
+      font-size: 50px;
+      color: #fff;
+      text-shadow: 0 0 20px #76ff03, 0 0 30px #4caf50, 0 0 40px #00e676;
+      margin: 0;
+      animation: fadeIn 2s ease-out;
+      font-family: cursive;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+   /* Start Button */
+.start-button {
+  position: absolute;
+  bottom: 15%;
+  padding: 10px 25px;
+  font-size: 20px;
+  color: #fff;
+  background: linear-gradient(145deg, #4caf50, #2e7d32); /* Green Gradient Background */
+  border: 3px solid #2e7d32;
+  border-radius: 12px;
+  text-transform: uppercase;
+  font-weight: bold;
+  
+  transition: all 0.4s ease-in-out;
+  outline: none;
+}
+
+.start-button:hover {
+  transform: translateY(-6px) scale(1.1); /* Slight upward movement and scaling */
+  box-shadow: 0 15px 40px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.9);
+  background: linear-gradient(145deg, #66bb6a, #388e3c); /* Light green on hover */
+}
+
+.start-button:active {
+  transform: translateY(2px) scale(0.98); /* Slightly press down effect */
+  box-shadow: 0 5px 15px rgba(0, 255, 0, 0.7), 0 0 8px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(145deg, #388e3c, #66bb6a); /* Dark green on active */
+}
+
+/* Optional Glow Effect */
+.start-button:before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 108%;
+  height: 120%;
+  border-radius: 12px;
+  background: rgba(0, 255, 0, 0.1);
+  transform: translate(-50%, -50%);
+  
+}
+
+
+
+    /* Background Star Animation */
+        .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #fff;
+      border-radius: 50%;
+      animation: blink 2s infinite ease-in-out; /* Apply both animations */
+    }
+
+    @keyframes blink {
+      0%, 100% {
+        opacity: 0.3;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+
+   
+  </style>
+</head>
+<body>
+  <!-- Background Music -->
+ 
+
+  <h1>Goodland</h1>
+  <button class="start-button" onclick="location.href='game.html'">Start</button>
+ 
+ 
+<script>
+    // Generate Background Stars
+    for (let i = 0; i < 50; i++) {
+      const star = document.createElement('div');
+      star.className = 'star'; // Use class to style all stars
+      star.style.top = `${Math.random() * 100}vh`;
+      star.style.left = `${Math.random() * 100}vw`;
+      star.style.animationDelay = `${Math.random() * 2}s`; // Delay for each star
+      document.body.appendChild(star);
+    }
+  </script>
+</body>
+</html>
